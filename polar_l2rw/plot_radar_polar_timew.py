@@ -59,16 +59,18 @@ def main():
     l2rwX = np.zeros(shape=(1,360,400))*np.nan #init first dim to 1. we'll inc this later 
 
     #INPUT PARAMS ###############
-    OBS_FILE='/scratch4/NCEPDEV/meso/save/Donald.E.Lippi/gsi/data/obsfiles/2015103018/rap.t18z.nexrad.tm00.bufr_d'
+   #OBS_FILE='/scratch4/NCEPDEV/meso/save/Donald.E.Lippi/gsi/data/obsfiles/2015103018/rap.t18z.nexrad.tm00.bufr_d'
+    OBS_FILE='/scratch4/NCEPDEV/meso/save/Donald.E.Lippi/gsi/data/obsfiles/2015103018/nam.t18z.nexrad.tm00.bufr_d'
     message_type1='NC006027' #6010 + 17z = 6027
     message_type2='NC006028' #6010 + 18z = 6028
     date=2015103018
     STAID="KGRK"
     anel0=0.5
     del_anel=0.25
-    del_time=0.10 #5
+    del_time=0.5 #5
     #############################
-    time_check=(60. - del_time*60.)
+    time_check_1=(60. - del_time*60.)
+    time_check_2=(      del_time*60.)
     print("Average obs with time window of {} minutes".format(del_time*60.))
     n=-1
      
@@ -77,20 +79,14 @@ def main():
     bufr = ncepbufr.open(OBS_FILE) # bufr file for reading.
     bufr.dump_table('l2rwbufr.table') # dump table to file.
     while bufr.advance() == 0: # loop over messages.
-       #if(bufr.msg_counter > 39000 and bufr.msg_counter < 40000 and bufr.msg_type == message_type1):
-       #if(bufr.msg_counter > 42300 and bufr.msg_counter < 42500 and bufr.msg_type == message_type2):
-       if(bufr.msg_counter > 15100 and bufr.msg_counter < 15222 and bufr.msg_type == message_type2):
-       #if(bufr.msg_type == message_type2):
-            print(bufr.msg_counter, bufr.msg_type, bufr.msg_date,time_check)
-          #if(bufr.msg_type == message_type1 or bufr.msg_type == message_type2):
+       if(bufr.msg_type == message_type1 or bufr.msg_type == message_type2):
+            print(bufr.msg_counter, bufr.msg_type, bufr.msg_date,time_check_1,time_check_2)
             while bufr.load_subset() == 0: # loop over subsets in message.
                 hdr = bufr.read_subset(hdstr).squeeze() # parse hdstr='SSTN CLON ... etc.'
                 bufr_minu=hdr[9]
                 good=False
-                if(bufr.msg_type == message_type1 and bufr_minu >= time_check): good=True
-                if(bufr.msg_type == message_type2 and bufr_minu <= time_check): good=True
-                if(bufr.msg_type == message_type2 and bufr_minu >= time_check): brk=True
-                #bufr_minu_prev=bufr_minu #update previous for next loop
+                if(bufr.msg_type == message_type1 and bufr_minu >= time_check_1): good=True
+                if(bufr.msg_type == message_type2 and bufr_minu <= time_check_2): good=True
                 if(good): #looking for next minute to process
                    station_id = hdr[0].tostring() # convert SSTN to string.
                    station_id=station_id.strip()  # remove white space from SSTN.
@@ -130,8 +126,6 @@ def main():
                               l2rwX[n,:,:]=rw
                               sids=[]; lons=[]; lats=[]; l2rw=[]; anel=[]; anaz=[]
                               dist125m=[]; ymdhm=[]; radii=[]; PRF=[]
-                              #pdb.set_trace()
-            if(brk): break # stop reading after times have been processed. 
     bufr.close()
     rw_mean = np.nanmean(np.dstack(l2rwX),axis=2)#average element wise over time series
     print("shape of l2rwX is" +str(np.shape(l2rwX)))
@@ -142,7 +136,6 @@ def main():
     toc = time.clock() # check how long reading the data in took.
     sec = str(toc-tic)
     print('time it took to run: '+sec+' seconds.')
-    #pdb.set_trace()
 
 
     #4. INITIALIZE THE POLAR PLOT
