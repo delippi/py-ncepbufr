@@ -68,7 +68,7 @@ def main():
                         anaz.append(hdr[11]) # azimuthal angles
                         radii.append(obs[0]*125) #distances in units of 1 m
                         ymdhm.append(int(hdr[9]))
-                        if(anaz[-1] >= 360.0): # we would like to break the loop now.
+                        if(anaz[-1] >= 359.0): # we would like to break the loop now.
                             b='true'
         if(b == 'true'): break # stop reading after all anaz's read.
     bufr.close()
@@ -100,7 +100,8 @@ def main():
     #5. POPULATE THE EMPTY RW ARRAY WITH ACTUAL VALUES.
     #for i in range(len(anaz)): # for every azimuth angle ...
     for i in range(360): # for every azimuth angle ...
-        print(i,'/',len(anaz))
+        sys.stdout.write('\r'+str(i)+'/'+str(len(anaz)))
+        sys.stdout.flush()
         for j in range(len(radii[i])): # ... loop over every observation distance from radar ...
             for k in range(len(r[i])): # ... and loop over an equally 125m spaced array ...
                 if(radii[i][j] == r[i][k]): # ... if the observation dist = dist125m ...

@@ -151,11 +151,10 @@ def main():
     #  so_type="tuned"
     calc_variance=True
     if(calc_variance):
-       #f1=open('./'+str(station_id)+'stats'+str(anal_time)+str(so_type),'w+')
-       #f1=open('./'+str(station_id)+'stats'+str(anal_time)+"tuned_low",'w+')
        #f1=open('./'+str(station_id)+'stats'+str(anal_time)+"default",'w+')
-       #f1=open('./'+str(station_id)+'stats'+str(anal_time)+"default_timex",'w+')
-       f1=open('./'+str(station_id)+'stats'+str(anal_time)+"default_time",'w+')
+       #f1=open('./'+str(station_id)+'stats'+str(anal_time)+"default_7pt5min",'w+')
+       #f1=open('./'+str(station_id)+'stats'+str(anal_time)+"tuned",'w+')
+       f1=open('./'+str(station_id)+'stats'+str(anal_time)+"tuned_30min",'w+')
        rw_stdev=rw[rw>-999].std()
        rw_mean =rw[rw>-999].mean()
        rw_var  =rw[rw>-999].var()
