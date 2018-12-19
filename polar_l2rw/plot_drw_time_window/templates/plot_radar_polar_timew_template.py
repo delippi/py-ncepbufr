@@ -64,10 +64,10 @@ def main():
     message_type1='NC006027' #6010 + 17z = 6027
     message_type2='NC006028' #6010 + 18z = 6028
     date=2015103018
-    STAID="KGRK"
-    anel0=0.5
+    STAID="@STAID@"
+    anel0=@anel0@
     del_anel=0.25
-    del_time=0.125 #5
+    del_time=@del_time@   #0.5 = +/- 30min (1hour time window)
     #############################
     time_check_1=(60. - del_time*60.)
     time_check_2=(      del_time*60.)
@@ -128,11 +128,9 @@ def main():
                               dist125m=[]; ymdhm=[]; radii=[]; PRF=[]
     bufr.close()
     rw_mean = np.nanmean(np.dstack(l2rwX),axis=2)#average element wise over time series
-    rw=rw_mean # overwrite rw with the rw_mean for further processing
-    rw_std = np.nanstd(np.dstack(l2rwX),axis=2)
-    rw=rw_std
     print("shape of l2rwX is" +str(np.shape(l2rwX)))
     print("type=",type(l2rwX))
+    rw=rw_mean # overwrite rw with the rw_mean for further processing
     rw[np.isnan(rw)] = -999. # the masked values are converted to nan. set nan to -999.
     print("shape of rw is" +str(np.shape(rw)))
     toc = time.clock() # check how long reading the data in took.
@@ -148,7 +146,7 @@ def main():
 
 
     calc_variance=True
-    figname='./'+STAID+'_'+str(anel0)+'_'+str(date)+'_'+str(del_time)+'_std'
+    figname='./'+STAID+'_'+str(anel0)+'_'+str(date)+'_'+str(del_time)
     if(calc_variance):
        f1=open(figname+'.txt','w+')
        rw_stdev=rw[rw!=-999.].std()
