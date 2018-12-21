@@ -18,7 +18,6 @@ import numpy.ma as ma
 import matplotlib.pyplot as plt
 import time
 import matplotlib.colors as mcolors
-import pdb
 
 def make_colormap(seq):
     """Return a LinearSegmentedColormap
@@ -56,18 +55,19 @@ def main():
     #4. INITIALIZE THE POLAR PLOT AS ALL MISSING DATA (-999).
     theta,r = np.meshgrid(anaz,np.arange(minRadii,maxRadii,250.)) # create meshgrid
     theta=deg2rad(theta) # convert theta from degrees to radians.
-    l2rwX = np.zeros(shape=(1,360,400))*np.nan #init first dim to 1. we'll inc this later 
+    l2rwX = np.zeros(shape=(1,361,400))*np.nan #init first dim to 1. we'll inc this later 
 
     #INPUT PARAMS ###############
    #OBS_FILE='/scratch4/NCEPDEV/meso/save/Donald.E.Lippi/gsi/data/obsfiles/2015103018/rap.t18z.nexrad.tm00.bufr_d'
     OBS_FILE='/scratch4/NCEPDEV/meso/save/Donald.E.Lippi/gsi/data/obsfiles/2015103018/nam.t18z.nexrad.tm00.bufr_d'
+    OBS_FILECPY=OBS_FILE+"_cpy"
     message_type1='NC006027' #6010 + 17z = 6027
     message_type2='NC006028' #6010 + 18z = 6028
     date=2015103018
     STAID="@STAID@"
     anel0=@anel0@
     del_anel=0.25
-    del_time=@del_time@   #0.5 = +/- 30min (1hour time window)
+    del_time=@del_time@
     #############################
     time_check_1=(60. - del_time*60.)
     time_check_2=(      del_time*60.)
@@ -77,13 +77,23 @@ def main():
     #2. READ PREPBUFR FILE.
     brk=False # used for breaking the loop.
     bufr = ncepbufr.open(OBS_FILE) # bufr file for reading.
+    bufrcpy=ncepbufr.open(OBS_FILECPY) # bufr file for reading ahead and determining maxanaz.
     bufr.dump_table('l2rwbufr.table') # dump table to file.
     while bufr.advance() == 0: # loop over messages.
+       #bufr has been advanced, now if reading concurrently, bufrcpy should be behind by one. But sometimes
+       #bufrcpy could be ahead of where we need it (but only by one step) since we read it forward. 
+       #We don't want to advance it in that case.
+       if( (bufr.msg_counter-bufrcpy.msg_counter)==1): bufrcpy.advance()
        if(bufr.msg_type == message_type1 or bufr.msg_type == message_type2):
             print(bufr.msg_counter, bufr.msg_type, bufr.msg_date,time_check_1,time_check_2)
             while bufr.load_subset() == 0: # loop over subsets in message.
                 hdr = bufr.read_subset(hdstr).squeeze() # parse hdstr='SSTN CLON ... etc.'
                 bufr_minu=hdr[9]
+                #*********************
+                bufrcpy.load_subset()#**********************
+                hdrcpy=bufrcpy.read_subset(hdstr).squeeze()#
+                bufrcpy_minu=hdrcpy[9]#*********************
+                #**********************
                 good=False
                 if(bufr.msg_type == message_type1 and bufr_minu >= time_check_1): good=True
                 if(bufr.msg_type == message_type2 and bufr_minu <= time_check_2): good=True
@@ -94,17 +104,64 @@ def main():
                        if(hdr[4] >= anel0-del_anel and hdr[4] <= anel0+del_anel): # read an elevation angle.
                            if(hdr[11] >= 0 and hdr[11] <= 1): # increment n on first azimuth only
                               n=n+1
+                              maxanaz=0 #initialize/reset. This gets updates around azm 355
                            obs = bufr.read_subset(obstr).squeeze() # parse obstr='DIST125M DMVR DVSW'
-                           print(bufr.msg_counter,'SSTN,DATE/TIME : ',station_id,hdr[5:10],hdr[4],hdr[11],n)
+                           #*******************************************
+                           obscpy=bufrcpy.read_subset(obstr).squeeze()#
+                           #*******************************************
+                           print(bufr.msg_counter,'SSTN,DATE/TIME : ',station_id,hdr[5:10],hdr[4],hdr[11],n,len(anaz))
                            sids.append(station_id) # station ids
                            l2rw.append(obs[1]) # level 2 radial winds
                            anel.append(hdr[4]) # elevation angles
                            anaz.append(hdr[11]) # azimuthal angles
                            radii.append(obs[0]*125) #distances in units of 1 m
                            ymdhm.append(int(hdr[9]))
-                           if(anaz[-1] >= 359.0): # we would like to break the loop now.
+                           #It is not sufficient to check for len(anaz) == 360. Sometimes, it is missing. 
+#***********************************************************************************************************
+                           if(len(anaz) == 355): #pause to read ahead. 
+                              while bufrcpy.load_subset() == 0: # read ahead with bufrcpy
+                                  hdrcpy=bufrcpy.read_subset(hdstr).squeeze()
+                                  bufrcpy_minu=hdrcpy[9]
+                                  maxanaz=max(maxanaz,int(np.ceil(hdrcpy[11]))) #need hdrcpy[11] rounded up.
+                              tries=0
+                              while tries < 10 and bufrcpy.advance() == 0: # look no. tries messages ahead.
+                                 tries+=1
+                                 while bufrcpy.load_subset() == 0:
+                                     bufrcpy_minu=hdrcpy[9]
+                                     good=False
+                                     if(bufrcpy.msg_type == message_type1 and bufrcpy_minu >= time_check_1): 
+                                        good=True
+                                     if(bufrcpy.msg_type == message_type2 and bufrcpy_minu <= time_check_2):
+                                        good=True
+                                     if(good): #looking for next minute to process
+                                        station_id = hdrcpy[0].tostring() # convert SSTN to string.
+                                        station_id=station_id.strip()  # remove white space from SSTN.
+                                        if(station_id == STAID):
+                                           if(hdrcpy[4] >= anel0-del_anel and hdrcpy[4] <= anel0+del_anel):
+                                              hdrcpy= bufrcpy.read_subset(hdstr).squeeze()
+                                              maxanaz=max(maxanaz,int(np.ceil(hdrcpy[11])))
+                                              print(bufrcpy.msg_counter,'cpySSTN,DATE/TIME : ',station_id,hdrcpy[5:10],hdrcpy[4],hdrcpy[11],n,len(anaz))
+                              print(maxanaz)
+                           if(len(anaz) >= 355): print(len(anaz),maxanaz)
+#***********************************************************************************************************
+                           #if(len(anaz) >= 355 and we've reached the end of the subset with anaz = 355)
+                           if(len(anaz) == maxanaz and len(anaz)> 355):
+                              while(len(anaz) < 360): #fill in some missing data points
+                                 l2rw.append(obs[1]*0 + -999.)
+                                 anel.append(anel[-1])
+                                 anaz.append(anaz[-1]+1)
+                                 radii.append(radii[-1])
+                                 ymdhm.append(ymdhm[-1])
+                              while(len(anaz) < 361): # fill in the final beam with nan mean between 1st and 359th
+                                 #l2rw_first_last=l2rw[0],l2rw[-1]
+                                 #l2rw.append(np.nanmean(np.dstack(l2rw_first_last),axis=2).flatten().tolist())
+                                 l2rw.append(l2rw[0])
+                                 anel.append(anel[0])
+                                 anaz.append(anaz[-1]+1)
+                                 radii.append(radii[0])
+                                 ymdhm.append(ymdhm[0])
                               MM=str(ymdhm[-1])
-                              print("max/min el. anlge:  ",np.max(anel),np.min(anel))
+                              print("max/min el. angle:  ",np.max(anel),np.min(anel))
                               print("max/min minute:     ",np.max(ymdhm),np.min(ymdhm))
                               theta,r = np.meshgrid(anaz,np.arange(minRadii,maxRadii,250.)) # create meshgrid
                               theta=deg2rad(theta)
@@ -112,8 +169,8 @@ def main():
                               rw.fill(-999) # change all values to missing data (-999).
                               r=r.T; rw=rw.T#; PRF_new.T # transpose r and rw for later manipulation.
                               #5. POPULATE THE EMPTY RW ARRAY WITH ACTUAL VALUES.
-                              for i in range(359): # for every azimuth angle ...
-                                  print(i,'/',len(anaz))
+                              for i in range(360): # for every azimuth angle ...
+                                  print(str(i+1)+'/'+str(360))
                                   for j in range(len(radii[i])): # loop over every observation distance from radar
                                       for k in range(len(r[i])): # and loop over an equally 125m spaced array
                                           if(radii[i][j] == r[i][k]): # if the observation dist = dist125m

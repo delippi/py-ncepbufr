@@ -1,15 +1,19 @@
-#!/bin/ksh
-#PBS -N radar
-#PBS -l walltime=00:50:00
+#!/bin/ksh --login
+#PBS -N radar_@STAID@_@del_time@
+#PBS -l walltime=@walltime@
 #PBS -l procs=10 
-#PBS -q batch
+#PBS -q @queue@
 #PBS -A fv3-cpu
-#PBS -o radar.log
+#PBS -o radar_@del_time@.log
 #PBS -j oe
 
-import intel
-import anaconda/2.3.0
+. /usr/Modules/3.2.10/init/ksh
+. /etc/profile
+. /etc/profile.d/modules.sh
+module load intel
+module load anaconda
+
 
 PATH="/home/Donald.E.Lippi/plotting/python/py-ncepbufr/polar_l2rw/plot_drw_time_window/@STAID@"
 cd $PATH
-/contrib/anaconda/2.3.0/bin/python ./plot_radar_polar_timew_@STAID@.py 
+/contrib/anaconda/2.3.0/bin/python ./plot_radar_polar_timew_@STAID@_@del_time@.py 
