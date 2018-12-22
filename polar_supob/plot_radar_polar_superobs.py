@@ -58,7 +58,7 @@ def main():
 
     #4. GET THE INPUT FILE CONTAINING THE SUPER OBSERVATIONS.
     fileds=[stalat,stalon,stahgt,dattime,hgt,vr,corrected_azimuth,err,corrected_tilt,gamma]
-    os.system('./read_radar.exe')
+    os.system('./exec/read_radar.exe')
     fname='./output.bin'
     f=F.FortranFile(fname,endian='>')
 
@@ -151,10 +151,14 @@ def main():
     #  so_type="tuned"
     calc_variance=True
     if(calc_variance):
-       #f1=open('./'+str(station_id)+'stats'+str(anal_time)+"default",'w+')
-       #f1=open('./'+str(station_id)+'stats'+str(anal_time)+"default_7pt5min",'w+')
-       #f1=open('./'+str(station_id)+'stats'+str(anal_time)+"tuned",'w+')
-       f1=open('./'+str(station_id)+'stats'+str(anal_time)+"tuned_30min",'w+')
+       if(del_time == 0.5 and del_range == 5000):
+          f1=open('./'+str(station_id)+'stats'+str(anal_time)+"default",'w+')
+       if(del_time != 0.5 and del_range == 5000):
+          f1=open('./'+str(station_id)+'stats'+str(anal_time)+"default_7pt5min",'w+')
+       if(del_time != 0.5 and del_range == 3000):
+          f1=open('./'+str(station_id)+'stats'+str(anal_time)+"tuned",'w+')
+       if(del_time == 0.5 and del_range == 3000):
+          f1=open('./'+str(station_id)+'stats'+str(anal_time)+"tuned_30min",'w+')
        rw_stdev=rw[rw>-999].std()
        rw_mean =rw[rw>-999].mean()
        rw_var  =rw[rw>-999].var()

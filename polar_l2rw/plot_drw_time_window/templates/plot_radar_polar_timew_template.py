@@ -65,7 +65,6 @@ def main():
     n=-1
      
     #2. READ PREPBUFR FILE.
-    brk=False # used for breaking the loop.
     bufr = ncepbufr.open(OBS_FILE) # bufr file for reading.
     bufrcpy=ncepbufr.open(OBS_FILECPY) # bufr file for reading ahead and determining maxanaz.
     bufr.dump_table('l2rwbufr.table') # dump table to file.
