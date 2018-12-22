@@ -1,13 +1,3 @@
-#!/bin/python
-#PBS -N radar
-#PBS -l walltime=00:20:00
-#PBS -l nodes=1:ppn=8 
-#PBS -q batch
-#PBS -A fv3-cpu
-#PBS -o radar.log
-#PBS -j oe
-
-
 from __future__ import print_function
 import matplotlib
 matplotlib.use('Agg')
