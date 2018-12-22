@@ -94,6 +94,13 @@ def main():
                            if(hdr[11] >= 0 and hdr[11] <= 1): # increment n on first azimuth only
                               n=n+1
                               maxanaz=0 #initialize/reset. This gets updates around azm 355
+                           if(np.floor(hdr[11]) != len(anaz)):
+                              sids.append(station_id) # station ids
+                              l2rw.append(obs[1]*0 + -999.) # level 2 radial winds
+                              anel.append(anel[-1]+1.) # elevation angles
+                              anaz.append(anaz[-1]) # azimuthal angles
+                              radii.append(radii[-1]) #distances in units of 1 m
+                              ymdhm.append(ymdhm[-1])
                            obs = bufr.read_subset(obstr).squeeze() # parse obstr='DIST125M DMVR DVSW'
                            #*******************************************
                            obscpy=bufrcpy.read_subset(obstr).squeeze()#
