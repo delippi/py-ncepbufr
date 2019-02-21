@@ -6,7 +6,8 @@ import matplotlib.pyplot as plt
 
 import subprocess
 
-STAIDS=["KFDR","KFWS","KGLD","KGRK","KICT","KINX","KLNX","KRTX","KTLX","KVNX"]
+#STAIDS=["KFDR","KFWS","KGLD","KGRK","KICT","KINX","KLNX","KRTX","KTLX","KVNX"]
+STAIDS=["KFDR","KGLD","KGRK","KICT","KINX","KLNX","KRTX","KTLX","KVNX"]
 strn=" -e STDEV -e MEAN -e VAR "
 strn_std=" STDEV "
 strn_mean=" MEAN "
@@ -14,6 +15,7 @@ strn_var=" VAR "
 cut=" | cut -f 2 -d '='"
 
 VARS=["STDEV","MEAN"]
+#VARS=["STDEV"]
 
 stdev=np.zeros(shape=(len(STAIDS),7),dtype=float)
 mean=np.zeros(shape=(len(STAIDS),7),dtype=float)
@@ -22,7 +24,6 @@ var=np.zeros(shape=(len(STAIDS),7),dtype=float)
 
 i=0
 for STAID in STAIDS:
-#    print STAID
 
     l2rw_timewindow="../polar_l2rw/plot_drw_time_window/"+STAID+"/"
     l2rw="../polar_l2rw/plot_drw/"+STAID+"/"
@@ -95,10 +96,9 @@ levels = ['L2 \n +/-0min',
 levels_int=np.arange(0,7,1)
 
 
-
 colors=["#000000","#ff0044","#55ff00","#00aaff","#8800ff"]
 colors=["#000000","#ff0044","#55ff00","#00aaff","#8800ff","#000000","#ff0044","#55ff00","#00aaff","#8800ff"]
-colors=["#000000","#ff0044","#55ff00","#00aaff","#8800ff","#ff6600","#33cccc","#ff99ff","#99ccff","#339933"]
+colors=["#339933","#ff0044","#55ff00","#00aaff","#8800ff","#ff6600","#33cccc","#ff99ff","#99ccff","#339933"]
 linestyles=["-","-","-","-","-","-","-","-","-","-"]
 for VAR in VARS:
    fig = plt.figure(1,figsize=(10,6))
@@ -108,14 +108,20 @@ for VAR in VARS:
       print(VAR,STAID)
       if(VAR == "STDEV"):
          ax1.plot(stdev[i,:],color=colors[i],marker='o',markersize=l_dot_size,label=STAID,    linewidth=linewidth,linestyle=linestyles[i])
+         if(i == len(STAIDS)-1):
+            ax1.plot(np.nanmean(stdev,axis=0),color='black',marker='o',markersize=l_dot_size,label="MEAN",linewidth=linewidth,linestyle=linestyles[0])
          ylabel="Standard Deviation (m/s)"
          figname="RadialWindStats_std"
       if(VAR == "MEAN"):
          ax1.plot(mean[i,:],color=colors[i],marker='o',markersize=l_dot_size,label=STAID,    linewidth=linewidth,linestyle=linestyles[i])
+         if(i == len(STAIDS)-1):
+            ax1.plot(np.nanmean(mean,axis=0),color='black',marker='o',markersize=l_dot_size,label="MEAN",linewidth=linewidth,linestyle=linestyles[0])
          ylabel="Mean (m/s)"
          figname="RadialWindStats_mean"
       if(VAR == "VAR"):
          ax1.plot(var[i,:],color=colors[i],marker='o',markersize=l_dot_size,label=STAID,    linewidth=linewidth,linestyle=linestyles[i])
+         if(i == len(STAIDS)-1):
+            ax1.plot(np.nanmean(var,axis=0),color='black',marker='o',markersize=l_dot_size,label="MEAN",linewidth=linewidth,linestyle=linestyles[0])
          ylabel="Variance (m/s)"
          figname="RadialWindStats_var"
       i+=1
