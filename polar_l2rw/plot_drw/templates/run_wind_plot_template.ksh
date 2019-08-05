@@ -1,12 +1,11 @@
 #!/bin/ksh --login
 
-#PBS -N radar_@STAID@_wind 
-#PBS -l walltime=@walltime@
-#PBS -l procs=10
-#PBS -q @queue@
-#PBS -A fv3-cpu
-#PBS -o radar_wind.log 
-#PBS -j oe
+#SBATCH -J radar_@STAID@_wind 
+#SBATCH -t @walltime@
+#SBATCH -n 10
+#SBATCH -q @queue@
+#SBATCH -A fv3-cpu
+#SBATCH -o radar_wind.log 
 #
 #run the executable
 set -x
@@ -16,7 +15,7 @@ module load anaconda/2.3.0
 
 cd /home/Donald.E.Lippi/plotting/python/py-ncepbufr/polar_l2rw/plot_drw/@STAID@
 # Set up experiment
-ANAL_TIME=2015103018
+ANAL_TIME=@ANAL_TIME@
 OBS_PATH=/scratch4/NCEPDEV/meso/save/Donald.E.Lippi/gsi/data/obsfiles/$ANAL_TIME/
 
 staid="@STAID@"
@@ -25,6 +24,7 @@ hh=`echo $ANAL_TIME | cut -c9-10`
 
 #OBS_FILE=${OBS_PATH}/rap.t${hh}z.nexrad.tm00.bufr_d
 OBS_FILE=${OBS_PATH}/nam.t${hh}z.nexrad.tm00.bufr_d
+#OBS_FILE=${OBS_PATH}/rap.t${hh}z.nexrad.tm00.bufr_d
 if [[ $hh -ge 00 && $hh -le 09 ]]; then
    (( num=6010+$hh )) 
    msg_type=NC00$num #Ex: NC006012 if for 02z and NC006013 is for 03z.
