@@ -14,9 +14,11 @@ module load intel
 module load anaconda/2.3.0
 
 cd /home/Donald.E.Lippi/plotting/python/py-ncepbufr/polar_l2rw/plot_drw/@STAID@
+cd $work
 # Set up experiment
 ANAL_TIME=@ANAL_TIME@
-OBS_PATH=/scratch4/NCEPDEV/meso/save/Donald.E.Lippi/gsi/data/obsfiles/$ANAL_TIME/
+#OBS_PATH="@obspath@"
+OBS_PATH=$obspath
 
 staid="@STAID@"
 anel0=@anel0@

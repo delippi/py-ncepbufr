@@ -13,18 +13,19 @@ set -x
 module load intel
 module load anaconda/2.3.0
 
-cd /home/Donald.E.Lippi/plotting/python/py-ncepbufr/polar_l2rw/plot_drw/@STAID@
+staid="@STAID@"
+cd @work@/$staid
 # Set up experiment
 ANAL_TIME=@ANAL_TIME@
-OBS_PATH=/scratch4/NCEPDEV/meso/save/Donald.E.Lippi/gsi/data/obsfiles/$ANAL_TIME/
+OBS_PATH="@obspath@"
 
-staid="@STAID@"
 anel0=@anel0@
 hh=`echo $ANAL_TIME | cut -c9-10`
 
-
 OBS_FILE=${OBS_PATH}/nam.t${hh}z.nexrad.tm00.bufr_d
 OBS_FILE=${OBS_PATH}/rap.t${hh}z.nexrad.tm00.bufr_d
+cp -p $OBS_FILE ${OBS_FILE}_cpy #make a copy (it helps)
+
 if [[ $hh -ge 00 && $hh -le 09 ]]; then
    (( num=6040+$hh ))
    msg_type=NC00$num #Ex: NC006042 if for 02z and NC006043 is for 03z.
@@ -39,10 +40,7 @@ fi
 # Sets PYTHONPATH correctly for running python in the q.
 PYTHONPATH=/contrib/anaconda/EXT/2.3.0/lib/python2.7/site-packages:/scratch4/NCEPDEV/meso/save/Jacob.Carley/python/lib64/python:/scratch4/NCEPDEV/meso/save/Donald.E.Lippi/python/lib64/python
 
-
 # Run Python Script
-/contrib/anaconda/2.3.0/bin/python ./plot_radar_polar_ref_@STAID@.py ${OBS_FILE} ${msg_type} ${ANAL_TIME} ${staid} ${anel0}
-
+/contrib/anaconda/2.3.0/bin/python ./plot_radar_polar_refl_@STAID@.py ${OBS_FILE} ${msg_type} ${ANAL_TIME} ${staid} ${anel0}
 echo 'done'
-
 
