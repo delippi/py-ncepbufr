@@ -33,8 +33,8 @@ def main():
     tic = time.clock()
     # Mnemonics for getting data from the bufr file.
     hdstr= 'SSTN CLON CLAT SELV ANEL YEAR MNTH DAYS HOUR MINU QCRW ANAZ' #PRFR' # MGPT'
-    obstr= 'DIST125M DMVR DVSW' # PRFR'                     #NL2RW--level 2 radial wind.
-    obstr2='STDM SUPLON SUPLAT HEIT RWND RWAZ RSTD' #RWSOB--radial wind super ob.
+    obstr= 'DIST125M DMVR DVSW' #NL2RW--level 2 radial wind.
+    #obstr2='STDM SUPLON SUPLAT HEIT RWND RWAZ RSTD' #RWSOB--radial wind super ob.
 
     #1. INITIALIZING SOME BASIC LISTS AND GETTING INPUT DATA.
     i=0; sids=[]; lons=[]; lats=[]; l2rw=[]; anel=[]; anaz=[]; dist125m=[]; ymdhm=[]; radii=[]; PRF=[]
@@ -66,7 +66,6 @@ def main():
                 hdrcpy=bufrcpy.read_subset(hdstr).squeeze()#
                 #*******************************************
                 if(station_id == STAID): # comes from input. used for picking a single SSTN.
-                #if(station_id == 'KPOE' or station_id == 'KSHV' or station_id == 'KSRX'):
                     if(hdr[4] >= anel0-del_anel and hdr[4] <= anel0+del_anel): # read an elevation angle.
                         obs = bufr.read_subset(obstr).squeeze() # parse obstr='DIST125M DMVR DVSW'
                         #*******************************************
@@ -129,7 +128,6 @@ def main():
     maxRadii=100000 # set max of max distances to about 100 mi.
     minRadii=0 # min of min distances.
 
-
     #4. INITIALIZE THE POLAR PLOT AS ALL MISSING DATA (-999).
     fig = plt.figure(figsize=(8,8)) # 8" x 8" seems plenty large.
     ax = fig.add_subplot(111)
@@ -146,7 +144,6 @@ def main():
     
     #5. POPULATE THE EMPTY RW ARRAY WITH ACTUAL VALUES.
     for i in range(len(anaz)): # for every azimuth angle ...
-    #for i in range(360): # for every azimuth angle ...
         sys.stdout.write('\r'+str(i)+'/'+str(len(anaz)))
         sys.stdout.flush()
         for j in range(len(radii[i])): # ... loop over every observation distance from radar ...
@@ -160,51 +157,14 @@ def main():
 
     ax.hist(rw[rw!=-999.],bins=41)
 
-#    calc_variance=True
-#    figname='./'+str(STAID)+'stats'+str(date)
-#    if(calc_variance):
-#       f1=open(figname,'w+')
-#       rw_stdev=rw[rw!=-999.].std()
-#       rw_mean =rw[rw!=-999.].mean()
-#       rw_var  =rw[rw!=-999.].var()
-#       f1.write("The output here describes some statistics for the radial wind obs \n")
-#       f1.write("Obs file={} \n".format(OBS_FILE))
-#       f1.write("date    ={} \n".format(date))
-#       f1.write("Station ={} \n".format(STAID))
-#       f1.write("STDEV   ={} \n".format(rw_stdev))
-#       f1.write("MEAN    ={} \n".format(rw_mean))
-#       f1.write("VAR     ={} \n".format(rw_var))
-#       f1.close()
-#        
-#
-#    #6. FINISH MAKING THE POLAR PLOT WITH THE FILLED IN VALUES.
-#    if(False):
-#       cmap = plt.cm.jet # use the jet colormap.
-#       cmap.set_under('white') # set the -999 values to white.
-#    else:
-#       c = mcolors.ColorConverter().to_rgb
-#       cmap = make_colormap(
-#             [c('deepskyblue'),c('navy')    ,0.20, # light blue to dark blue
-#              c('#02ff02')    ,c('#003500') ,0.47, # bright green to dark green
-#              c('#809e80')    ,c('white')   ,0.50, # gray with green tint to white
-#              c('white')      ,c('#9e8080') ,0.53, # white to gray with red tint
-#              c('#350000')    ,c('#ff0000') ,0.80, # dark red to bright red
-#              c('salmon')     ,c('yellow')])       # salmon to yellow
-#       cmap.set_under('#999999')
-#       cmap.set_over('purple')
-#    mesh = ax.pcolormesh(theta,r.T,rw.T,shading='flat',cmap=cmap,vmin=-40,vmax=40) # plot the data.
-#    cbar = fig.colorbar(mesh,shrink=0.85,pad=0.10,ax=ax) # add a colorbar.
-#    cbar.set_label('$m/s$') # radial wind data is in units of meters per second.
-    #exp='real'
-    exp='perturbed_1p00_250'
-    plt.title('Doppler Velocity - '+exp+' \n Station ID: '+STAID\
+    plt.title('Doppler Velocity \n Station ID: '+STAID\
               +'  Scan Angle: '+str(anel[0])\
               +'  Date: '+date+MM.zfill(2),fontsize=15,y=1.12) # add a useful title.
     plt.xlabel('velocity (m/s)')
     plt.ylabel('number of obs')
     ax.grid(True)
     plt.show() # make the plot.
-    plt.savefig('./'+STAID+'_'+str(anel[0])+'_'+date+MM.zfill(2)+'_'+exp+'_hist.png'\
+    plt.savefig('./'+STAID+'_'+str(anel[0])+'_'+date+MM.zfill(2)+'_hist.png'\
                 ,bbox_inches='tight') # save figure.
 
     #7. CALCULATE SOME STATS

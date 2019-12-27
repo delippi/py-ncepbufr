@@ -33,8 +33,8 @@ def main():
     tic = time.clock()
     # Mnemonics for getting data from the bufr file.
     hdstr= 'SSTN CLON CLAT SELV ANEL YEAR MNTH DAYS HOUR MINU QCRW ANAZ' #PRFR' # MGPT'
-    obstr= 'DIST125M DMVR DVSW' # PRFR'                     #NL2RW--level 2 radial wind.
-    obstr2='STDM SUPLON SUPLAT HEIT RWND RWAZ RSTD' #RWSOB--radial wind super ob.
+    obstr= 'DIST HREF'
+    #obstr2='STDM SUPLON SUPLAT HEIT RWND RWAZ RSTD' #RWSOB--radial wind super ob.
 
     #1. INITIALIZING SOME BASIC LISTS AND GETTING INPUT DATA.
     i=0; sids=[]; lons=[]; lats=[]; l2rw=[]; anel=[]; anaz=[]; dist125m=[]; ymdhm=[]; radii=[]; PRF=[]
@@ -77,7 +77,7 @@ def main():
                         l2rw.append(obs[1]) # level 2 radial winds
                         anel.append(hdr[4]) # elevation angles
                         anaz.append(hdr[11]) # azimuthal angles
-                        radii.append(obs[0]*125) #distances in units of 1 m
+                        radii.append(obs[0]) #distances in units of 1 m
                         ymdhm.append(int(hdr[9]))
                         #It is not sufficient to check for len(anaz) == 360. Sometimes, it is missing. 
 #***********************************************************************************************************
@@ -133,7 +133,7 @@ def main():
     ax = fig.add_subplot(111,polar=True) # we would like it to be a polar plot.
     ax.set_theta_zero_location("N") # set theta zero location to point North.
     ax.set_theta_direction(-1) # set theta to increase clockwise (-1).
-    theta,r = np.meshgrid(anaz,np.arange(minRadii,maxRadii,250.)) # create meshgrid
+    theta,r = np.meshgrid(anaz,np.arange(minRadii,maxRadii,1000.)) # create meshgrid
     theta=deg2rad(theta) # convert theta from degrees to radians.
     rw = np.zeros(shape=(len(theta),len(r[0]))) # initialize the polar plot with all 0's.
     rw.fill(-999) # change all values to missing data (-999).
@@ -143,7 +143,6 @@ def main():
     
     #5. POPULATE THE EMPTY RW ARRAY WITH ACTUAL VALUES.
     for i in range(len(anaz)): # for every azimuth angle ...
-    #for i in range(360): # for every azimuth angle ...
         sys.stdout.write('\r'+str(i)+'/'+str(len(anaz)))
         sys.stdout.flush()
         for j in range(len(radii[i])): # ... loop over every observation distance from radar ...
@@ -170,12 +169,17 @@ def main():
        f1.write("MEAN    ={} \n".format(rw_mean))
        f1.write("VAR     ={} \n".format(rw_var))
        f1.close()
-        
 
     #6. FINISH MAKING THE POLAR PLOT WITH THE FILLED IN VALUES.
     if(False):
        cmap = plt.cm.jet # use the jet colormap.
        cmap.set_under('white') # set the -999 values to white.
+       mesh = ax.pcolormesh(theta,r.T,rw.T,shading='flat',cmap=cmap,vmin=-40,vmax=40) # plot the data.
+    elif(True): #for reflectivity
+       clevs= [5.,10.,15.,20.,25.,30.,35.,40.,45.,50.,55.,60.,65.,70.,75.]
+       cmap = ncepy.mrms_radarmap()
+       mesh = ax.pcolormesh(theta,r.T,rw.T,shading='flat',cmap=cmap,vmin=5,vmax=75) # plot the data.
+       cmap.set_under('#999999')
     else:
        c = mcolors.ColorConverter().to_rgb
        cmap = make_colormap(
@@ -187,15 +191,15 @@ def main():
               c('salmon')     ,c('yellow')])       # salmon to yellow
        cmap.set_under('#999999')
        cmap.set_over('purple')
-    mesh = ax.pcolormesh(theta,r.T,rw.T,shading='flat',cmap=cmap,vmin=-40,vmax=40) # plot the data.
+       mesh = ax.pcolormesh(theta,r.T,rw.T,shading='flat',cmap=cmap,vmin=-40,vmax=40) # plot the data.
     cbar = fig.colorbar(mesh,shrink=0.85,pad=0.10,ax=ax) # add a colorbar.
-    cbar.set_label('$m/s$') # radial wind data is in units of meters per second.
-    plt.title('Doppler Velocity \n Station ID: '+STAID\
+    cbar.set_label('$dBZ$') # radial wind data is in units of meters per second.
+    plt.title('Doppler Reflectity \n Station ID: '+STAID\
               +'  Scan Angle: '+str(anel[0])\
               +'  Date: '+date+MM.zfill(2),fontsize=15,y=1.12) # add a useful title.
     ax.grid(True)
     plt.show() # make the plot.
-    plt.savefig('./'+STAID+'_'+str(anel[0])+'_'+date+MM.zfill(2)+'.png'\
+    plt.savefig('./REF_'+STAID+'_'+str(anel[0])+'_'+date+MM.zfill(2)+'.png'\
                 ,bbox_inches='tight') # save figure.
 
     #7. CALCULATE SOME STATS
