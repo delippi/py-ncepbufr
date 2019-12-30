@@ -9,20 +9,20 @@
 #  https://github.com/JacobCarley-NOAA/NCEPy
 #  https://github.com/JCSDA/py-ncepbufr
 
-######    U S E R   I N P U T    ###################################################################
-STAIDS="KFDR KFWS KGLD KGRK KICT KINX KLNX KRTX KTLX KVNX" #What radars would you like to process? # 
-STAIDS="KOHX"        #(input) What radars would you like to process? (can be a list)               #
-anel0=0.5            #(input) and at what elevation angle? (+/-0.25) 0.5 0.9 1.3 1.8 2.4 3.4...    #
-refl="NO"            #(input) plot reflectivity                                                    #
-drws="YES"           #(input) plot doppler radial winds                                            #
-walltime=00:20:00    #(input) batch job walltime (SBATCH)                                          #
-queue="batch"        #(input) the batch queue                                                      #
-debug="NO"           #(input) don't run a batch job                                                #
-ANAL_TIME=2019120100 #(input) date of the observation file                                         #
-histogram=".false."  #(input) true=makes histogram plot; false=plots observations                  #
-obspath="/scratch1/NCEPDEV/stmp2/Donald.E.Lippi/" #(input) the nexrad bufr files are located here. #
-work="/scratch2/NCEPDEV/fv3-cam/Donald.E.Lippi/py-ncepbufr/polar_l2rw/plot_drw/" #(input) workspace#
-####################################################################################################
+######    U S E R   I N P U T    #####################################################################
+STAIDS="KFDR KFWS KGLD KGRK KICT KINX KLNX KRTX KTLX KVNX" #What radars would you like to process?   # 
+STAIDS="KOHX"        #(input) What radars would you like to process? (can be a list)                 #
+anel0=0.5            #(input) and at what elevation angle? (+/-0.25) 0.5 0.9 1.3 1.8 2.4 3.4...      #
+refl="NO"            #(input) plot reflectivity                                                      #
+drws="YES"           #(input) plot doppler radial winds                                              #
+walltime=00:20:00    #(input) batch job walltime (SBATCH)                                            #
+queue="batch"        #(input) the batch queue                                                        #
+debug="NO"           #(input) don't run a batch job                                                  #
+ANAL_TIME=2019120100 #(input) date of the observation file                                           #
+histogram=".false."  #(input) true=makes histogram plot; false=plots observations                    #
+obspath="/scratch1/NCEPDEV/stmp2/Donald.E.Lippi/" #(input) the nexrad bufr files are located here.   #
+work="/scratch2/NCEPDEV/fv3-cam/Donald.E.Lippi/py-ncepl2bufr/polar_l2rw/plot_drw/" #(input) workspace#
+######################################################################################################
 set -x
 base=`pwd`
 #Loop over radars
