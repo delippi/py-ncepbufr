@@ -11,12 +11,13 @@
 
 ######    U S E R   I N P U T    ###################################################################
 STAIDS="KFDR KFWS KGLD KGRK KICT KINX KLNX KRTX KTLX KVNX" #What radars would you like to process? # 
-STAIDS="KDGX"        #(input) What radars would you like to process?                               #
+STAIDS="KOHX"        #(input) What radars would you like to process? (can be a list)               #
 anel0=0.5            #(input) and at what elevation angle? (+/-0.25) 0.5 0.9 1.3 1.8 2.4 3.4...    #
-refl="YES"           #(input) plot reflectivity                                                    #
-drws="NO"            #(input) plot doppler radial winds                                            #
+refl="NO"            #(input) plot reflectivity                                                    #
+drws="YES"           #(input) plot doppler radial winds                                            #
 walltime=00:20:00    #(input) batch job walltime (SBATCH)                                          #
 queue="batch"        #(input) the batch queue                                                      #
+debug="NO"           #(input) don't run a batch job                                                #
 ANAL_TIME=2019120100 #(input) date of the observation file                                         #
 histogram=".false."  #(input) true=makes histogram plot; false=plots observations                  #
 obspath="/scratch1/NCEPDEV/stmp2/Donald.E.Lippi/" #(input) the nexrad bufr files are located here. #
@@ -45,8 +46,8 @@ for STAID in $STAIDS; do
           sed -i "s/@histogram@/${histogram}/g" ./run_wind_plot_hist_${STAID}.ksh
           sed -i "s#@obspath@#${obspath}#g"     ./run_wind_plot_hist_${STAID}.ksh
           sed -i "s#@work@#${work}#g"           ./run_wind_plot_hist_${STAID}.ksh
-          sbatch ./run_wind_plot_hist_${STAID}.ksh
-          #ksh ./run_wind_plot_hist_${STAID}.ksh
+          if [[ $debug == "NO" ]]; then; sbatch ./run_wind_plot_hist_${STAID}.ksh; fi
+          if [[ $debug =="YES" ]]; then;    ksh ./run_wind_plot_hist_${STAID}.ksh; fi
 
        else
           if [[ $drws == "YES" ]]; then
@@ -63,8 +64,8 @@ for STAID in $STAIDS; do
              sed -i "s/@histogram@/${histogram}/g" ./run_wind_plot_${STAID}.ksh
              sed -i "s#@obspath@#${obspath}#g"     ./run_wind_plot_${STAID}.ksh 
              sed -i "s#@work@#${work}#g"           ./run_wind_plot_${STAID}.ksh 
-             sbatch ./run_wind_plot_${STAID}.ksh
-             #ksh ./run_wind_plot_${STAID}.ksh
+             if [[ $debug == "NO" ]]; then; sbatch ./run_wind_plot_${STAID}.ksh; fi
+             if [[ $debug =="YES" ]]; then;    ksh ./run_wind_plot_${STAID}.ksh; fi
           fi
 
           if [[ $refl == "YES" ]]; then
@@ -80,9 +81,8 @@ for STAID in $STAIDS; do
              sed -i "s/@anel0@/${anel0}/g"         ./run_refl_plot_${STAID}.ksh
              sed -i "s#@obspath@#${obspath}#g"     ./run_refl_plot_${STAID}.ksh 
              sed -i "s#@work@#${work}#g"           ./run_refl_plot_${STAID}.ksh 
-             #submit the job to the queue to make the mean and std 2d wind plots.
-             sbatch ./run_refl_plot_${STAID}.ksh
-             #ksh ./run_refl_plot_${STAID}.ksh
+             if [[ $debug == "NO" ]]; then; sbatch ./run_refl_plot_${STAID}.ksh; fi
+             if [[ $debug =="YES" ]]; then;    ksh ./run_refl_plot_${STAID}.ksh; fi
           fi
        fi
 done
